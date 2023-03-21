@@ -22,7 +22,7 @@ if(isset($_SESSION['msg'])){
     <!-- FONT AWESOME -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- CSS -->
-    <link rel="stylesheet" href="<?=$BASE_URL?>/css/styles.css">
+    <link rel="stylesheet" href="<?=$BASE_URL?>css/styles.css">
 </head>
 
 <body>
