@@ -58,7 +58,8 @@
           // Gerando o nome da imagem
           $imageName = $movie->imageGenerateName();
 
-          imagejpeg($imageFile, "./img/movies/" . $imageName, 100);
+          // imagejpeg($imageFile, "./img/movies/" . $imageName, 100);
+          imagejpeg($imageFile, "./img/movies/");
 
           $movie->image = $imageName;
 
