@@ -1,95 +1,82 @@
 <?php
 
-  require_once("globals.php");
   require_once("db.php");
+  require_once("globals.php");
   require_once("models/User.php");
   require_once("models/Message.php");
   require_once("dao/UserDAO.php");
 
-  $message = new Message($BASE_URL);
-
-  $userDao = new UserDAO($conn, $BASE_URL);
-
-  // Resgata o tipo do formulário
+  // Verificando o tipo do formulário
   $type = filter_input(INPUT_POST, "type");
 
-  // Atualizar usuário
+  $message = new Message($BASE_URL);
+  $userDao = new UserDAO($conn, $BASE_URL);
+
+  // Atualizar informações do usuário
   if($type === "update") {
 
-    // Resgata dados do usuário
-    $userData = $userDao->verifyToken();
+    // Pegar info do usuário para substituir apenas o necessário
+    $auth = new UserDAO($conn, $BASE_URL);
+    $userData = $auth->verifyToken();
 
-    // Receber dados do post
+    // Recebendo os inputs do formulário
     $name = filter_input(INPUT_POST, "name");
     $lastname = filter_input(INPUT_POST, "lastname");
-    $email = filter_input(INPUT_POST, "email");
+    $email = filter_input(INPUT_POST, "email", FILTER_VALIDATE_EMAIL);
     $bio = filter_input(INPUT_POST, "bio");
 
-    // Criar um novo objeto de usuário
+    // Model do usuário para usar métodos
     $user = new User();
 
-    // Preencher os dados do usuário
+    // Alterando o que precisa para atualizar
     $userData->name = $name;
     $userData->lastname = $lastname;
     $userData->email = $email;
     $userData->bio = $bio;
 
-    // Upload da imagem
+    // Upload de imagem
     if(isset($_FILES["image"]) && !empty($_FILES["image"]["tmp_name"])) {
-      
+
       $image = $_FILES["image"];
-      $imageTypes = ["image/jpeg", "image/jpg", "image/png"];
-      $jpgArray = ["image/jpeg", "image/jpg"];
 
-      // Checagem de tipo de imagem
-      if(in_array($image["type"], $imageTypes)) {
+      // Checando tipo da imagem
+      if(in_array($image["type"], ["image/jpeg", "image/jpg", "image/png"])) {
 
-        // Checar se jpg
-        if(in_array($image, $jpgArray)) {
-
+        // Checa se é jpg
+        if(in_array($image["type"], ["image/jpeg", "image/jpg"])) {
           $imageFile = imagecreatefromjpeg($image["tmp_name"]);
-
-        // Imagem é png
         } else {
-
           $imageFile = imagecreatefrompng($image["tmp_name"]);
-
         }
 
-        $imageName = $user->imageGenerateName();
+        $imageName = $user->generateImageName();
 
-        imagejpeg($imageFile, "./img/users/" . $imageName, 100);
+        imagejpeg($imageFile, "./img/users/".$imageName, 100);
 
         $userData->image = $imageName;
 
       } else {
-
-        $message->setMessage("Tipo inválido de imagem, insira png ou jpg!", "error", "back");
-
+        $message->setMessage("Tipo inválido de imagem, envie jpg ou png!", "error", "editprofile.php");
       }
 
     }
 
     $userDao->update($userData);
 
-  // Atualizar senha do usuário
+  // Atualizar senha
   } else if($type === "changepassword") {
 
-    // Receber dados do post
+    // Recebendo os inputs do formulário
     $password = filter_input(INPUT_POST, "password");
-    $confirmpassword = filter_input(INPUT_POST, "confirmpassword");
-
-    // Resgata dados do usuário
-    $userData = $userDao->verifyToken();
+    $confirmPassword = filter_input(INPUT_POST, "confirmpassword"); 
+    $id = filter_input(INPUT_POST, "id");
     
-    $id = $userData->id;
+    if($password == $confirmPassword) {
 
-    if($password == $confirmpassword) {
-
-      // Criar um novo objeto de usuário
+      // Montando usuário com dados novos
       $user = new User();
 
-      $finalPassword = $user->generatePassword($password);
+      $finalPassword = password_hash($password, PASSWORD_DEFAULT);
 
       $user->password = $finalPassword;
       $user->id = $id;
@@ -97,11 +84,9 @@
       $userDao->changePassword($user);
 
     } else {
-      $message->setMessage("As senhas não são iguais!", "error", "back");
+
+      $message->setMessage("As senhas não são iguais.", "error", "editprofile.php");
+
     }
-
-  } else {
-
-    $message->setMessage("Informações inválidas!", "error", "index.php");
 
   }
